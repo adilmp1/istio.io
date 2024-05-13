@@ -41,8 +41,7 @@ _verify_contains snip_verify_traffic_notsleep_to_productpage "$snip_verify_traff
 # Label the default namespace to enable Istio's ambient mode for data plane configuration
 kubectl label namespace default istio.io/dataplane-mode=ambient
 
-
-
+# @cleanup
 kubectl label namespace default istio.io/dataplane-mode-
 snip_uninstall_3
 cleanup_bookinfo_sample
