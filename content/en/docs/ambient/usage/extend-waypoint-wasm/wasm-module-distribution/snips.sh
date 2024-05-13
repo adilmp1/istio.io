@@ -222,4 +222,3 @@ ENDSNIP
 snip_cleanup_1() {
 kubectl delete wasmplugin basic-auth-at-gateway basic-auth-at-waypoint basic-auth-for-service
 }
-
