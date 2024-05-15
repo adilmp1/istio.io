@@ -1,27 +1,29 @@
 ---
-title: Distributing WebAssembly Modules
+title: Extend waypoints with WebAssembly plugins
 description: Describes how to make remote WebAssembly modules available for ambient mode.
-weight: 45
+weight: 55
 keywords: [extensibility,Wasm,WebAssembly,Ambient]
 owner: istio/wg-policies-and-telemetry-maintainers
-test: yes
+test: no
 status: Alpha
 ---
 
 {{< boilerplate alpha >}}
 
-Istio provides the ability to [extend its functionality using WebAssembly (Wasm)](/docs/reference/config/proxy_extensions/wasm-plugin/).
-One of the key advantages of Wasm extensibility is that extensions can be loaded dynamically at runtime. This document outlines the testing process for the implementation of Wasm features in ambient mode within Istio. In ambient mode, Wasm configuration must be applied to the waypoint proxy deployed in each namespace, instead of to individual sidecars.
+Istio provides the ability to [extend its functionality using WebAssembly (Wasm)](/docs/concepts/wasm/).
+One of the key advantages of Wasm extensibility is that extensions can be loaded dynamically at runtime. This document outlines how to extend ambient mode within Istio with Wasm features. In ambient mode, Wasm configuration must be applied to the waypoint proxy deployed in each namespace.
 
 ## Install Ambient Mode and deploy test applications
 
-Follow the [Ambient Getting Started Guide](docs/ambient/getting-started/#download) to install Istio in ambient mode. Deploy the [sample applications](docs/ambient/getting-started/#bookinfo) required for exploring waypoint proxy extensibility via Wasm. Make sure to add the sample [applications to ambient mode](docs/ambient/getting-started/#addtoambient) before proceeding further.
+Follow the [Ambient Getting Started Guide](/docs/ambient/getting-started/#download) to install Istio in ambient mode. Deploy the [sample applications](/docs/ambient/getting-started/#bookinfo) required for exploring waypoint proxy extensibility via Wasm. Make sure to [add the sample applications](/docs/ambient/getting-started/#addtoambient) to the mesh before proceeding further.
 
 ## Apply Wasm configuration at the Gateway
 
+With Kubernetes Gateway API, Istio provides a centralized entry point for managing traffic into the service mesh. We will configure a WasmPlugin at the gateway level, ensuring that all traffic passing through the gateway is subject to the extended authentication rules.
+
 ### Configure WasmPlugin for Gateway
 
-In this example, you will add a HTTP [Basic auth module](https://github.com/istio-ecosystem/wasm-extensions/tree/master/extensions/basic_auth) to your mesh. You will configure Istio to pull the Basic auth module from a remote image registry and load it. It will be configured to run on calls to `/productpage`. Steps are more or less similar as [Istio / Distributing WebAssembly Modules](docs/tasks/extensibility/wasm-module-distribution/), only difference being the recommended usage of `targetRefs` instead of `labelSelectors` in WasmPlugin.
+In this example, you will add a HTTP [Basic auth module](https://github.com/istio-ecosystem/wasm-extensions/tree/master/extensions/basic_auth) to your mesh. You will configure Istio to pull the Basic auth module from a remote image registry and load it. It will be configured to run on calls to `/productpage`. Steps are more or less similar as [Istio / Distributing WebAssembly Modules](/docs/tasks/extensibility/wasm-module-distribution/), only difference being the recommended usage of `targetRefs` instead of `labelSelectors` in WasmPlugin.
 
 To configure a WebAssembly filter with a remote Wasm module, create a `WasmPlugin` resource targeting the `bookinfo-gateway`:
 
@@ -77,9 +79,11 @@ The Istio agent will interpret the WasmPlugin configuration, download remote Was
 
 ## Apply Wasm Configuration at Waypoint Proxy
 
+Waypoint proxies play a crucial role in Istio's ambient mode, facilitating secure and efficient communication within the service mesh. Below, we will explore how to apply Wasm configuration to the waypoint, enhancing the proxy functionality dynamically.
+
 ### Deploy a waypoint proxy
 
-Follow the [waypoint deployment instructions](docs/ambient/getting-started/#layer-7-authorization-policy) to deploy a waypoint proxy in the bookinfo namespace.
+Follow the [waypoint deployment instructions](/docs/ambient/getting-started/#layer-7-authorization-policy) to deploy a waypoint proxy in the bookinfo namespace.
 
 {{< text bash >}}
 $ istioctl x waypoint apply --enroll-namespace --wait
@@ -233,8 +237,10 @@ When executing the provided command without credentials, it verifies that access
 
 ### Cleanup
 
-{{< text bash >}}
-$ kubectl delete wasmplugin basic-auth-at-gateway basic-auth-at-waypoint basic-auth-for-service
-{{< /text >}}
+1. Remove WasmPlugin configuration:
 
-Follow [ambient uninstall guide](docs/ambient/getting-started/#uninstall) for cleanup of ambient mode and sample test applications.
+    {{< text bash >}}
+    $ kubectl delete wasmplugin basic-auth-at-gateway basic-auth-at-waypoint basic-auth-for-service
+    {{< /text >}}
+
+1. Follow [the ambient mode uninstall guide](/docs/ambient/getting-started/#uninstall) to remove Istio and sample test applications.
